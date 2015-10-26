@@ -5,6 +5,11 @@
 #include "Arduino.h"
 #include "Ads1118.h"
 
+#ifdef DEBUG
+    #define DEBUG_PRINT(x)  Serial.println(x)
+#else
+    #define DEBUG_PRINT(x)
+
 Ads1118::Ads1118(int CS_pin)
 {
     pinMode(CS_pin, OUTPUT);
@@ -20,7 +25,7 @@ void Ads1118::begin()
     digitalWrite(_cs, HIGH); // Do not start transactions yet
     if(self_test()){
         //Error
-        Serial.println("Error has occurred during self test");
+        DEBUG_PRINT("An error has occurred during self test");
     }
 }
 
@@ -65,21 +70,25 @@ word Ads1118::adsRead(word port)
     */
     word read;
     byte dummy, MSB, LSB;
+#ifdef DEBUG
     Serial.print("Current config is: ");
     Serial.println(CURRENT_CONFIG, HEX);
     Serial.print("Updating configuration to: ");
     Serial.println(port | (CURRENT_CONFIG & ~(PIN_BITMASK)), HEX);
     Serial.print("CURRENT_CONFIG & ~PIN_BITMASK = ");
     Serial.println((CURRENT_CONFIG & ~PIN_BITMASK), HEX);
+#endif
     if((CURRENT_CONFIG & PIN_BITMASK) != port){
         //Updates the configuration to the proper pin
         update_config((port | (CURRENT_CONFIG & ~(PIN_BITMASK))));
         delayMicroseconds(1000); // Experiment with this
     }
+#ifdef DEBUG
     Serial.print("Input mux: ");
     Serial.println(PIN_BITMASK & CURRENT_CONFIG, HEX);
     Serial.print("MOSI: ");
     Serial.println(CURRENT_CONFIG, HEX);
+#endif
     digitalWrite(_cs, LOW);
     delayMicroseconds(500);
     MSB = SPI.transfer((CURRENT_CONFIG >> 8) & 0xFF);
@@ -96,8 +105,10 @@ double Ads1118::convToFloat(word read)
     */
     float gain[6] = {6.144, 4.096, 2.048, 1.024, 0.512, 0.256};
     float myGain = gain[(((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2)];
+#ifdef DEBUG
     Serial.print("Gain = ");
     Serial.println(gain[(((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2)], DEC);
+#endif
     return (float)((int)read)*myGain/(0x8000);
 }
 
@@ -107,7 +118,7 @@ double Ads1118::readTemp()
        floating point representation of the temperature in degrees Celcius.
     */
     if(update_config(CONFIG_TEMPERATURE) != CONFIG_TEMPERATURE){
-        Serial.println("ERROR: not updating to temp config");
+        DEBUG_PRINT("Error: not updating to temp config");
     }
     word read;
     byte MSB, LSB;
