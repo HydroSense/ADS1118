@@ -9,6 +9,7 @@
     #define DEBUG_PRINT(x)  Serial.println(x)
 #else
     #define DEBUG_PRINT(x)
+#endif
 
 Ads1118::Ads1118(int CS_pin)
 {
@@ -62,7 +63,7 @@ word Ads1118::update_config(word new_config)
     return readConfig;
 }
 
-word Ads1118::adsRead(word port)
+word Ads1118::adsReadRaw(word port)
 {
     /* This method executes a 16 bit transaction if the current config
        is already correct, or 2 32-bit transactions otherwise, updating
@@ -110,6 +111,12 @@ double Ads1118::convToFloat(word read)
     Serial.println(gain[(((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2)], DEC);
 #endif
     return (float)((int)read)*myGain/(0x8000);
+}
+
+double Ads1118::adsRead(word port)
+{
+    /* This method returns the floating point representation 
+    return convToFloat(adsReadRaw(port)); // Reads from port; converts to float
 }
 
 double Ads1118::readTemp()

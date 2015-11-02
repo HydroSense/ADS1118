@@ -15,10 +15,11 @@ class Ads1118
         void begin(); //sets up SPI settings
         word update_config(word new_config); // returns the new config read
                                              // from the onboard register
-        word adsRead(word port);
+        word adsReadRaw(word port);
         double readTemp();
         byte self_test(); // returns 0 (no error), 1 (error)
         double convToFloat(word read);
+        double adsRead(word port);
         const word CONFIG_TEMPERATURE = 0x059B;
         const word AIN0 = 0x4000;
         const word AIN1 = 0x5000;
