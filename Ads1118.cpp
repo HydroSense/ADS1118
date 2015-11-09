@@ -116,6 +116,7 @@ double Ads1118::convToFloat(word read)
 double Ads1118::adsRead(word port)
 {
     /* This method returns the floating point representation 
+       */
     return convToFloat(adsReadRaw(port)); // Reads from port; converts to float
 }
 
@@ -141,15 +142,19 @@ double Ads1118::readTemp()
     LSB = SPI.transfer(CURRENT_CONFIG & 0xFF);
     digitalWrite(_cs, HIGH);
     read = (MSB << 6) | (LSB >> 2);
+#ifdef DEBUG
     Serial.print("Raw MSB =");
     Serial.println(MSB, HEX);
     Serial.print("Raw LSB =");
     Serial.println(LSB, BIN);
     Serial.print("Raw read =");
     Serial.println(read, BIN);
-    if(0x8000 & read == 0){
+    Serial.print("0x8000 & read =");
+#endif
+    if((0x8000 & read) == 0){
         return (double)read*0.03125; // datasheet page 18
     }
-    read = !(read - 1);
+    read = ~(read - 1);
     return (double)read*-0.03125;
 }
+
