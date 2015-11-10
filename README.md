@@ -1,6 +1,6 @@
 #Hydrosense Libraries
 
 ###ADS1118 Library for controlling the 16-bit TI ADC
-cd to ~/Arduino/libraries/
+Clone repository into your Arduino libraries folder (typically ~/Arduino/libraries/)
 
-clone repository
+###The default configuration has the full scale range (FSR) set to 6.144V.
