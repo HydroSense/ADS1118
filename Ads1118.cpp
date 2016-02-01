@@ -74,6 +74,8 @@ word Ads1118::update_config(word new_config)
     digitalWrite(_cs, HIGH); // Done writing
     readConfig = (MSB << 8) | LSB;
     CURRENT_CONFIG = new_config; // Update global configuration variable
+    DEBUG_PRINT("current_config is:");
+//    DEBUG_PRINT(CURRENT_CONFIG, HEX);
     delayMicroseconds(1000); // experiment with this
     return readConfig;
 }
@@ -178,8 +180,17 @@ double Ads1118::readTemp()
     digitalWrite(_cs, LOW);
     delayMicroseconds(500);
     */
+#ifdef DEBUG
+    Serial.print("Sending: ");
+    Serial.println((CURRENT_CONFIG >> 8), HEX);
+#endif
     MSB = SPI.transfer((CURRENT_CONFIG >> 8) & 0xFF);
+#ifdef DEBUG
+    Serial.print("Sending: ");
+    Serial.println((CURRENT_CONFIG & 0xFF), HEX);
+#endif
     LSB = SPI.transfer(CURRENT_CONFIG & 0xFF);
+    delayMicroseconds(50);
     digitalWrite(_cs, HIGH);
     read = (MSB << 6) | (LSB >> 2);
 #ifdef DEBUG

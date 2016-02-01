@@ -14,6 +14,9 @@ void setup(){
 void loop(){
     Serial.println("Reading temperature");
     Serial.println(ads1118.readTemp(), DEC);
+
+    Serial.println(ads1118.adsRead(ads1118.AIN1), DEC);
+
     Serial.println();
 
     delay(1000);

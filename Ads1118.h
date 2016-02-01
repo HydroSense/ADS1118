@@ -34,7 +34,7 @@ class Ads1118
         word CURRENT_CONFIG; // Global variable holding configuration
 //        const word CONFIG_DEFAULT = 0x048B;
         const word CONFIG_DEFAULT = 0x008B;
-        const word CONFIG_TEMPERATURE = 0x059B;
+        const word CONFIG_TEMPERATURE = 0x049B;
 
         // Bit masks
         const word PIN_BITMASK = 0x7000;
