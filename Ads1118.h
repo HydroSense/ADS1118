@@ -16,6 +16,7 @@ class Ads1118
         void begin();
         double adsRead(word port);
         double readTemp();
+        double adsDifferentialread(word port);
         byte self_test();
 
         word update_config(word new_config);

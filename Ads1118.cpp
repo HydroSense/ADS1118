@@ -157,6 +157,12 @@ double Ads1118::adsRead(word port)
     return convToFloat(adsReadRaw(port)); // Reads from port; converts to float
 }
 
+double Ads1118::adsDifferentialRead(word port){
+
+
+    return 1;
+}
+
 double Ads1118::readTemp()
 {
     /* This function is still being debug and may or may not work.
