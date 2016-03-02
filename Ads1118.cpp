@@ -1,6 +1,7 @@
 /*
    Ads111.cpp - library for interacting with TI ADC
    Created by Colby Rome, October 20, 2015
+   Edited by Ward Prescott, March 1, 2016
 */
 
 #include "Arduino.h"
@@ -16,8 +17,7 @@
 
 Ads1118::Ads1118(int CS_pin)
 {
-    /* Constructor for Ads1118 class.
-     */
+    /* Constructor for Ads1118 class. */
     pinMode(CS_pin, OUTPUT);
     _cs = CS_pin;
 }
@@ -30,7 +30,7 @@ void Ads1118::begin()
      */
     SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
     SPI.begin();
-    digitalWrite(_cs, HIGH); // Do not begin transactions yet
+    digitalWrite(_cs, HIGH);  // Do not begin transactions yet
     if(self_test()){
         //Error
         DEBUG_PRINT("An error has occurred during self test");
@@ -49,7 +49,7 @@ byte Ads1118::self_test()
     return 0;
 }
 
-word Ads1118::update_config(word new_config)
+word Ads1118::update_config(uint16_t new_config)
 {
     /* This function executes a 32-bit transaction.
 
@@ -58,25 +58,19 @@ word Ads1118::update_config(word new_config)
        identical to new_config if config updated correctly.
      */
     word readConfig; //this is the return config
-    byte MSB, LSB;
-    byte MSBConf = ((new_config >> 8) & 0xFF); // bit mask to get MSB
-    byte LSBConf = (new_config & 0xFF); // bit mask for LSB
 
     digitalWrite(_cs, LOW);
     delayMicroseconds(500);
-    // The following 2 transfers result in garbage data:
-    SPI.transfer(MSBConf);
-    SPI.transfer(LSBConf);
-
-    // We capture the following two transfers to read back the configuration
-    MSB = SPI.transfer(MSBConf);
-    LSB = SPI.transfer(LSBConf);
+    // The following transfer results in garbage data:
+    SPI.transfer16(new_config);
+    // We capture the following transfer to read back the configuration
+    readConfig = SPI.transfer16(new_config);
     digitalWrite(_cs, HIGH); // Done writing
-    readConfig = (MSB << 8) | LSB;
+
+
     CURRENT_CONFIG = new_config; // Update global configuration variable
-    DEBUG_PRINT("current_config is:");
-//    DEBUG_PRINT(CURRENT_CONFIG, HEX);
-    delayMicroseconds(1000); // experiment with this
+    Serial.print("Current_config is:");
+    Serial.println(CURRENT_CONFIG, HEX);
     return readConfig;
 }
 
@@ -108,7 +102,7 @@ word Ads1118::adsReadRaw(word port)
     }
 
 #ifdef DEBUG
-    Serial.print("Input mux: ");
+    Serial.print("Input mux: 0x");
     Serial.println(PIN_BITMASK & CURRENT_CONFIG, HEX);
     Serial.print("MOSI: ");
     Serial.println(CURRENT_CONFIG, HEX);
@@ -116,10 +110,11 @@ word Ads1118::adsReadRaw(word port)
 
     digitalWrite(_cs, LOW);
     delayMicroseconds(500);
-    MSB = SPI.transfer((CURRENT_CONFIG >> 8) & 0xFF);
-    LSB = SPI.transfer(CURRENT_CONFIG & 0xFF);
+    //MSB = SPI.transfer((CURRENT_CONFIG >> 8) & 0xFF);
+    //LSB = SPI.transfer(CURRENT_CONFIG & 0xFF);
+    read = SPI.transfer16(CURRENT_CONFIG);
     digitalWrite(_cs, HIGH);
-    read = (MSB << 8) | LSB;
+    //read = (MSB << 8) | LSB;
     return read;
 }
 
@@ -138,12 +133,39 @@ double Ads1118::convToFloat(word read)
     // Find the correct gain index using bitshift and bitmask
     float myGain = gain[(((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2)];
 
+    Serial.println((((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2));
+
 #ifdef DEBUG
     Serial.print("Gain = ");
-    Serial.println(gain[(((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2)], DEC);
+    Serial.println(myGain);
 #endif
 
-    return (float)((int)read)*myGain/(0x8000);
+    return (float)((int)read)*((float)myGain)/ ((float)32768);
+}
+
+
+bool Ads1118::setGain(uint16_t GainSet){
+    //Temp variable
+    uint16_t newConfig = CURRENT_CONFIG;
+    Serial.print("New Config");
+    Serial.println(newConfig, HEX);
+
+    //Clear the corresponding pins in current config
+    newConfig &= ~(0b111 << 9);
+    
+    //Set the corresponding pins in current config
+    newConfig |= (GainSet << 9);
+
+    Serial.print("New Config");
+    Serial.println(newConfig, HEX);
+    
+    //Send update to the ADC
+    if (update_config(newConfig) == newConfig){
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 double Ads1118::adsRead(word port)
@@ -155,12 +177,6 @@ double Ads1118::adsRead(word port)
        Output: the floating point representation of desired operation.
      */
     return convToFloat(adsReadRaw(port)); // Reads from port; converts to float
-}
-
-double Ads1118::adsDifferentialRead(word port){
-
-
-    return 1;
 }
 
 double Ads1118::readTemp()
