@@ -7,7 +7,7 @@
 #include "Arduino.h"
 #include "Ads1118.h"
 
-#define DEBUG
+//#define DEBUG
 
 #ifdef DEBUG
     #define DEBUG_PRINT(x)  Serial.println(x)
@@ -60,7 +60,7 @@ word Ads1118::update_config(uint16_t new_config)
     word readConfig; //this is the return config
 
     digitalWrite(_cs, LOW);
-    delayMicroseconds(500);
+    delayMicroseconds(1);
     // The following transfer results in garbage data:
     SPI.transfer16(new_config);
     // We capture the following transfer to read back the configuration
@@ -109,12 +109,9 @@ word Ads1118::adsReadRaw(word port)
 #endif
 
     digitalWrite(_cs, LOW);
-    delayMicroseconds(500);
-    //MSB = SPI.transfer((CURRENT_CONFIG >> 8) & 0xFF);
-    //LSB = SPI.transfer(CURRENT_CONFIG & 0xFF);
+    delayMicroseconds(1);
     read = SPI.transfer16(CURRENT_CONFIG);
     digitalWrite(_cs, HIGH);
-    //read = (MSB << 8) | LSB;
     return read;
 }
 
@@ -133,8 +130,6 @@ double Ads1118::convToFloat(word read)
     // Find the correct gain index using bitshift and bitmask
     float myGain = gain[(((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2)];
 
-    Serial.println((((PGA_BITMASK & CURRENT_CONFIG) >> 8) / 2));
-
 #ifdef DEBUG
     Serial.print("Gain = ");
     Serial.println(myGain);
@@ -147,17 +142,12 @@ double Ads1118::convToFloat(word read)
 bool Ads1118::setGain(uint16_t GainSet){
     //Temp variable
     uint16_t newConfig = CURRENT_CONFIG;
-    Serial.print("New Config");
-    Serial.println(newConfig, HEX);
 
-    //Clear the corresponding pins in current config
+    //Clear the corresponding bits in current config
     newConfig &= ~(0b111 << 9);
     
     //Set the corresponding pins in current config
     newConfig |= (GainSet << 9);
-
-    Serial.print("New Config");
-    Serial.println(newConfig, HEX);
     
     //Send update to the ADC
     if (update_config(newConfig) == newConfig){

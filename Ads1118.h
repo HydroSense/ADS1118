@@ -30,7 +30,7 @@ class Ads1118
         const uint8_t G2_048 = 0b010;
         const uint8_t G1_024 = 0b011;
         const uint8_t G0_512 = 0b100;
-        const uint8_t G0_256 = 0b101;
+        //const uint8_t G0_256 = 0b101;  //Not working!?
 
         //These are defined input pins, diff and single ended.
         const uint16_t DIF01 = 0x0000;
