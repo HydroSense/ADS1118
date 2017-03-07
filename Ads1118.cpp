@@ -28,8 +28,8 @@ void Ads1118::begin()
        Page 25 on datasheet
      */
     pinMode(_cs, OUTPUT);
-    SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
     SPI.begin();
+    SPI.beginTransaction(SPISettings(2000000, MSBFIRST, SPI_MODE1));
     digitalWrite(_cs, HIGH);  // Do not begin transactions yet
     if(self_test()){
         //Error
