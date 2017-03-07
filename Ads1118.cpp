@@ -18,7 +18,6 @@
 Ads1118::Ads1118(int CS_pin)
 {
     /* Constructor for Ads1118 class. */
-    pinMode(CS_pin, OUTPUT);
     _cs = CS_pin;
 }
 
@@ -28,6 +27,7 @@ void Ads1118::begin()
        Clock Polarity 0, Clock Phase 1 -> SPI mode 1. MSB first.
        Page 25 on datasheet
      */
+    pinMode(_cs, OUTPUT);
     SPI.beginTransaction(SPISettings(4000000, MSBFIRST, SPI_MODE1));
     SPI.begin();
     digitalWrite(_cs, HIGH);  // Do not begin transactions yet
